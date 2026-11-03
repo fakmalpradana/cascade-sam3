@@ -4,11 +4,25 @@ from __future__ import annotations
 
 import json
 import logging
+import re
+from pathlib import Path
 
 from ..config import work
 from ..models.detector import detector_class
 
 log = logging.getLogger(__name__)
+
+
+def resume_checkpoint(out: Path) -> Path:
+    """Checkpoint Lightning berstatus lengkap (optimizer, scheduler, epoch) untuk resume, rfdetr 1.11.2:
+    `last.ckpt` bila ada, selain itu `checkpoint_<epoch>.ckpt` terbaru. File *.pth hanya berisi bobot."""
+    if (out / "last.ckpt").exists():
+        return out / "last.ckpt"
+    eps = [(int(m.group(1)), p) for p in out.glob("checkpoint_*.ckpt")
+           if (m := re.fullmatch(r"checkpoint_(\d+)\.ckpt", p.name))]
+    if not eps:
+        raise FileNotFoundError(f"tidak ada checkpoint .ckpt untuk resume di {out}")
+    return max(eps)[1]
 
 
 def train_detector(cfg: dict, name: str | None = None, resume: bool = False, epochs: int | None = None):
@@ -29,10 +43,7 @@ def train_detector(cfg: dict, name: str | None = None, resume: bool = False, epo
         seed=cfg["data"]["seed"], **(dc.get("extra") or {}),
     )
     if resume:
-        ck = next((out / f for f in ("checkpoint.pth", "last.ckpt") if (out / f).exists()), None)
-        if ck is None:
-            raise FileNotFoundError(f"tidak ada checkpoint untuk resume di {out}")
-        kwargs["resume"] = str(ck)
+        kwargs["resume"] = str(resume_checkpoint(out))
     (out / "cascade_train_args.json").write_text(json.dumps(dict(variant=dc["variant"], **kwargs), indent=2),
                                                   encoding="utf-8")
     log.info("RF-DETR %s -> %s", dc["variant"], out)
