@@ -1,20 +1,27 @@
 # Salin ke configs/local.yaml (gitignored) lalu sesuaikan setelah `cascade-sam3 inspect`.
+# Bila Claude Code/PowerShell jalan sebagai Admin, drive yang di-map (Y:, W:) tidak terlihat:
+# pakai path UNC, mis. "//Server_11/DATA_Server11/..." (lihat `net use` / HKCU:\Network).
 work_dir: "D:/cascade-sam3-work"
 data:
   gdal_bin: null              # null = auto-deteksi QGIS/OSGeo4W; contoh "C:/Program Files/QGIS 3.40.0/bin"
-  target_gsd_m: null
+  target_gsd_m: 0.08          # DKI 8 cm asli, Bontang 5 cm diturunkan (inspect Nov 2026)
 cities:
   dki:
-    ortho: "Y:/01 DKI JAKARTA 2025/02 DIGITASI/00 DATA DASAR"
+    # hanya subfolder ortho: "00 DATA DASAR" juga berisi OHM/SLOPE_DKI_DRAFT.tif (1 band, bukan citra)
+    ortho: "Y:/01 DKI JAKARTA 2025/02 DIGITASI/00 DATA DASAR/01 ORTHOFOTO"
     labels: "Y:/01 DKI JAKARTA 2025/02 DIGITASI/03 DATA FIX/03 FINAL"
+    # kelas ada di nama file: <grid>_BO (tapak), _RO (atap), _KANOPI; pakai BO saja
+    label_name_regex: '[-_]BO(_TAMBAL|_\d+)?\.gpkg$'
     coverage_mode: file_bbox  # label per grid 25 ha
     coverage_buffer_m: 30
     coverage_polygon: null
     label_filter: null        # contoh {column: "KETERANGAN", values: ["BANGUNAN"]}
   bontang:
     ortho: "Y:/2025/05 BONTANG/0_ORTO TAHAP 1 BONTANG"
-    labels: "Y:/2025/05 BONTANG/24_DELIVERABLE PRODUCT/00 Kegiatan Pemodelan 3D Bangunan dan Infrastruktur serta Validasi Data PBB/02 PEMBUATAN MODEL 3D (3D CITY MODEL)/01 TAPAK BANGUNAN"
+    # isi sama tersedia sebagai SHP, GeoJSON, DXF: pakai SHP saja agar tidak terhitung 3x
+    labels: "Y:/2025/05 BONTANG/24_DELIVERABLE PRODUCT/00 Kegiatan Pemodelan 3D Bangunan dan Infrastruktur serta Validasi Data PBB/02 PEMBUATAN MODEL 3D (3D CITY MODEL)/01 TAPAK BANGUNAN/01 FORMAT SHAPEFILE"
+    label_name_regex: null
     coverage_mode: buffer
     coverage_buffer_m: 30
     coverage_polygon: null
-    label_filter: null
+    label_filter: null        # semua TOPONIMI = "Bangunan"

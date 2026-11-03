@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+import re
 from pathlib import Path
 
 import geopandas as gpd
@@ -44,7 +45,14 @@ def find_files(paths, exts, include_gdb: bool = False) -> list[Path]:
 
 
 def vector_files(city_cfg: dict, cfg: dict) -> list[Path]:
-    return find_files(city_cfg["labels"], cfg["data"]["vector_exts"], include_gdb=True)
+    """`label_name_regex` (opsional, tanpa beda huruf besar/kecil, dicocokkan ke nama file) untuk data
+    yang kelasnya ada di nama file, mis. DKI `<grid>_BO.gpkg` vs `_RO`/`_KANOPI`."""
+    files = find_files(city_cfg["labels"], cfg["data"]["vector_exts"], include_gdb=True)
+    rx = city_cfg.get("label_name_regex")
+    if rx:
+        pat = re.compile(rx, re.IGNORECASE)
+        files = [f for f in files if pat.search(f.name)]
+    return files
 
 
 def raster_files(city_cfg: dict, cfg: dict) -> list[Path]:
