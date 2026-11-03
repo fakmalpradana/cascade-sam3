@@ -38,8 +38,9 @@ def gdal_run(cfg: dict, tool: str, args: list[str], check: bool = True) -> subpr
         raise RuntimeError("GDAL QGIS tidak ditemukan; pasang QGIS LTR atau set data.gdal_bin")
     env_bat = bindir / "o4w_env.bat"
     if IS_WIN and env_bat.exists():
-        cmd = f'call "{env_bat}" && {subprocess.list2cmdline([tool, *map(str, args)])}'
-        proc = subprocess.run(["cmd", "/c", cmd], capture_output=True, text=True)
+        # String mentah + /s: list ["cmd","/c",...] membuat Python meng-escape " jadi \" yang tak dipahami cmd.exe.
+        inner = f'call "{env_bat}" && {subprocess.list2cmdline([tool, *map(str, args)])}'
+        proc = subprocess.run(f'cmd /s /c "{inner}"', capture_output=True, text=True)
     else:
         proc = subprocess.run([str(bindir / tool), *map(str, args)], capture_output=True, text=True)
     if check and proc.returncode != 0:
