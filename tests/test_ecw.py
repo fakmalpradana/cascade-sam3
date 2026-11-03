@@ -22,7 +22,8 @@ def test_gdal_run_windows_cmd_quoting(tmp_path, monkeypatch):
     cmd = seen["cmd"]
     assert isinstance(cmd, str), "harus string mentah agar Python tidak menambah escape"
     assert '\\"' not in cmd
-    assert cmd.startswith('cmd /s /c "call "')
+    # /q: echo off, agar baris perintah o4w_env.bat tidak mencemari stdout (gdalinfo -json)
+    assert cmd.startswith('cmd /s /q /c "call "')
     assert f'"{bindir / "o4w_env.bat"}"' in cmd
     assert '"C:/data dir/a.ecw"' in cmd
     assert cmd.endswith('"')

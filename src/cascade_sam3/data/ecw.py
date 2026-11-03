@@ -39,8 +39,9 @@ def gdal_run(cfg: dict, tool: str, args: list[str], check: bool = True) -> subpr
     env_bat = bindir / "o4w_env.bat"
     if IS_WIN and env_bat.exists():
         # String mentah + /s: list ["cmd","/c",...] membuat Python meng-escape " jadi \" yang tak dipahami cmd.exe.
+        # /q: echo off, karena o4w_env.bat mencetak tiap perintahnya ke stdout (merusak gdalinfo -json).
         inner = f'call "{env_bat}" && {subprocess.list2cmdline([tool, *map(str, args)])}'
-        proc = subprocess.run(f'cmd /s /c "{inner}"', capture_output=True, text=True)
+        proc = subprocess.run(f'cmd /s /q /c "{inner}"', capture_output=True, text=True)
     else:
         proc = subprocess.run([str(bindir / tool), *map(str, args)], capture_output=True, text=True)
     if check and proc.returncode != 0:
