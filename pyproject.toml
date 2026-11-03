@@ -1,0 +1,54 @@
+[build-system]
+requires = ["setuptools>=69"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "cascade-sam3"
+version = "0.1.0"
+description = "Ekstraksi tapak bangunan dari orthophoto: RF-DETR-Seg + SAM 3 cascade"
+readme = "README.md"
+license = "Apache-2.0"
+requires-python = ">=3.11"
+authors = [{ name = "Fairuz Akmal Pradana" }]
+dependencies = [
+  "numpy>=1.26",
+  "pyyaml>=6",
+  "shapely>=2.0",
+  "geopandas>=1.0",
+  "pyogrio>=0.9",
+  "rasterio>=1.4",
+  "scipy>=1.11",
+  "opencv-python-headless>=4.9",
+  "pillow>=10",
+  "pandas>=2.1",
+  "tqdm>=4.66",
+]
+
+[project.optional-dependencies]
+train = [
+  "rfdetr[train,loggers]==1.11.2",
+  "transformers==5.22.1",
+  "peft==0.21.2",
+  "supervision>=0.26",
+  "tensorboard>=2.16",
+]
+dev = ["pytest>=8", "ruff>=0.6"]
+
+[project.scripts]
+cascade-sam3 = "cascade_sam3.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+cascade_sam3 = ["default.yaml"]
+
+[tool.ruff]
+line-length = 120
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

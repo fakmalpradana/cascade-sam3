@@ -1,0 +1,90 @@
+# cascade-sam3
+
+Ekstraksi tapak bangunan dari orthophoto dengan arsitektur **cascade hybrid**, pengganti SAM-YOLO:
+
+```
+Tile ortho 1008 px
+ ├─ RF-DETR-Seg (fine-tuned, Apache-2.0) ──► kotak + mask kasar + skor
+ └─ SAM 3 prompt teks "building" (zero-shot) ─► mask konsep (penambah recall)
+        ▼ pencocokan instance (mask IoU) → gabung, buang duplikat
+        ▼ SAM 3 prompt kotak per bangunan (mask decoder di-fine-tune) → tepi atap tajam
+        ▼ mask NMS → resolusi overlap → poligonisasi → regularisasi → GPKG
+```
+
+Rencana detail & definisi metrik: [`PLAN.md`](PLAN.md). Lisensi: Apache-2.0 (kode), lihat [`NOTICE`](NOTICE)
+untuk RF-DETR dan SAM 3 (SAM License Meta). Bobot model **tidak** ada di repo.
+
+## Kebutuhan
+
+- Windows 10/11, GPU NVIDIA ≥ 12 GB (diuji: RTX 3060 12 GB), RAM 64 GB.
+- Python 3.12 (python.org, dengan *py launcher*), Git, QGIS LTR (untuk driver ECW).
+- Drive kerja dengan > 150 GB kosong (default `D:/cascade-sam3-work`).
+- Akses Hugging Face ke [`facebook/sam3`](https://huggingface.co/facebook/sam3) (gated; ajukan dulu).
+
+## Langkah dari nol (Windows, PowerShell)
+
+```powershell
+git clone https://github.com/fakmalpradana/cascade-sam3.git
+cd cascade-sam3
+Set-ExecutionPolicy -Scope CurrentUser RemoteSigned   # sekali saja, bila skrip diblokir
+.\scripts\windows\setup_env.ps1                        # .venv + torch cu128 + paket
+.venv\Scripts\hf.exe auth login
+notepad configs\local.yaml                             # cek path data & work_dir
+.\scripts\windows\00_check_env.ps1                     # Fase 0: semua harus OK
+.\scripts\windows\01_prepare_data.ps1                  # Fase 1–2: inspect → convert-ecw → prepare
+.\scripts\windows\02_train.ps1                         # Fase 4–5: RF-DETR lalu decoder SAM 3
+.\scripts\windows\03_test_inference.ps1                # Fase 6: ablation
+.\scripts\windows\04_validate.ps1 -BaselineDir D:\sam_yolo_pred   # semua run + baseline
+```
+
+Setiap skrip berhenti bila ada perintah gagal dan menyimpan transcript di `work_dir/logs/`.
+
+## CLI
+
+`cascade-sam3 [--config F] [--set k=v ...] <cmd>`
+
+| Perintah | Fungsi |
+|---|---|
+| `check-env [--smoke]` | torch+CUDA, VRAM, bf16, paket, GDAL QGIS + ECW, akses HF, path data, disk |
+| `inspect` | `reports/data_report.md/.json` |
+| `convert-ecw [--city] [--full] [--force]` | ECW → GeoTIFF (hanya area berlabel + 200 m) |
+| `catalog` / `make-testsets` / `build-dataset` / `prepare` | katalog, 3 area uji per kota, tile + COCO |
+| `train-detector [--name] [--resume] [--epochs]` | RF-DETR-Seg |
+| `train-sam3 [--name] [--resume] [--epochs]` | fine-tune mask decoder SAM 3 (`sam3.train_mode: lora` opsional) |
+| `predict [--mode cascade\|detector\|concept] [--zero-shot-sam3] [--name] [--areas ...]` | inferensi area uji |
+| `predict --raster F --out F.gpkg` | inferensi raster bebas (untuk NARAGA) |
+| `validate [--name] [--pred-dir] [--areas ...]` | metrik piksel, objek, AP, boundary F1 |
+
+Contoh override: `cascade-sam3 --set infer.use_concept=false predict --mode cascade --name cascade_noconcept`.
+
+Baseline (Fase 3):
+
+```powershell
+# SAM-YOLO lama dijalankan pada work_dir\testsets\<area>\image.tif, hasil <area>.gpkg di satu folder
+.venv\Scripts\cascade-sam3.exe validate --pred-dir D:\sam_yolo_pred --name sam_yolo
+.venv\Scripts\cascade-sam3.exe predict --mode concept --name sam3_zeroshot
+.venv\Scripts\cascade-sam3.exe validate --name sam3_zeroshot
+```
+
+## Hasil
+
+Diisi setelah Fase 3–6 (6 area uji: 3 DKI + 3 Bontang, objek @ IoU 0,5).
+
+| Run | F1 objek | Precision | Recall | IoU piksel | Boundary F1 | AP50 |
+|---|---|---|---|---|---|---|
+| sam_yolo (baseline) | | | | | | |
+| sam3_zeroshot | | | | | | |
+| detector | | | | | | |
+| concept | | | | | | |
+| cascade_noconcept | | | | | | |
+| cascade | | | | | | |
+
+## Pengembangan
+
+```powershell
+.venv\Scripts\python.exe -m pytest     # data sintetis, tanpa GPU & tanpa bobot
+.venv\Scripts\ruff.exe check .
+```
+
+Keterbatasan diketahui: lubang poligon diabaikan di anotasi COCO; konversi ECW memotong satu persegi
+bbox label per raster.

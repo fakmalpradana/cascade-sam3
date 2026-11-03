@@ -1,0 +1,20 @@
+# Salin ke configs/local.yaml (gitignored) lalu sesuaikan setelah `cascade-sam3 inspect`.
+work_dir: "D:/cascade-sam3-work"
+data:
+  gdal_bin: null              # null = auto-deteksi QGIS/OSGeo4W; contoh "C:/Program Files/QGIS 3.40.0/bin"
+  target_gsd_m: null
+cities:
+  dki:
+    ortho: "Y:/01 DKI JAKARTA 2025/02 DIGITASI/00 DATA DASAR"
+    labels: "Y:/01 DKI JAKARTA 2025/02 DIGITASI/03 DATA FIX/03 FINAL"
+    coverage_mode: file_bbox  # label per grid 25 ha
+    coverage_buffer_m: 30
+    coverage_polygon: null
+    label_filter: null        # contoh {column: "KETERANGAN", values: ["BANGUNAN"]}
+  bontang:
+    ortho: "Y:/2025/05 BONTANG/0_ORTO TAHAP 1 BONTANG"
+    labels: "Y:/2025/05 BONTANG/24_DELIVERABLE PRODUCT/00 Kegiatan Pemodelan 3D Bangunan dan Infrastruktur serta Validasi Data PBB/02 PEMBUATAN MODEL 3D (3D CITY MODEL)/01 TAPAK BANGUNAN"
+    coverage_mode: buffer
+    coverage_buffer_m: 30
+    coverage_polygon: null
+    label_filter: null

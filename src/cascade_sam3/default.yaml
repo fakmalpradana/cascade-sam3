@@ -1,0 +1,86 @@
+work_dir: ./work
+data:
+  raster_exts: [.tif, .tiff, .ecw, .jp2, .vrt, .img]
+  vector_exts: [.shp, .gpkg, .geojson, .json, .dxf, .kml]   # + folder .gdb
+  gdal_bin: null
+  convert_clip_buffer_m: 200
+  target_gsd_m: null          # null = GSD asli; set setelah inspect (mis. 0.10) bila GSD < 8 cm
+  tile_size: 1008
+  tile_overlap: 0.25
+  min_tile_coverage: 0.9
+  max_nodata_fraction: 0.05
+  min_building_area_m2: 4.0
+  keep_empty_tile_ratio: 0.1
+  max_tiles_per_city: 10000
+  image_format: jpg
+  jpeg_quality: 95
+  val_fraction: 0.15
+  split_block_m: 500
+  seed: 42
+testsets:
+  areas_per_city: 3
+  area_size_m: 500            # 25 ha, sama dengan grid DKI
+  min_buildings: 30
+  min_separation_m: 1500
+  exclusion_buffer_m: 50
+  context_margin_m: 40
+  manual_areas: null          # GPKG opsional (kolom city, name) untuk memilih area manual
+detector:
+  variant: seg-large
+  resolution: 504
+  epochs: 60
+  batch_size: 2
+  grad_accum_steps: 8
+  lr: 1.0e-4
+  lr_encoder: 1.5e-4
+  num_workers: 4
+  early_stopping: true
+  early_stopping_patience: 12
+  checkpoint_interval: 5
+  extra: {}
+sam3:
+  model_id: facebook/sam3
+  train_mode: decoder         # decoder | lora
+  lora_r: 16
+  lora_alpha: 32
+  epochs: 12
+  lr: 1.0e-4
+  weight_decay: 0.01
+  max_instances_per_image: 24
+  box_jitter: 0.1
+  mask_loss_size: 512
+  focal_weight: 20.0
+  dice_weight: 1.0
+  iou_weight: 1.0
+  num_workers: 2
+  amp_dtype: bfloat16
+  max_train_images: null
+  max_val_images: 300
+infer:
+  mode: cascade               # cascade | detector | concept
+  tile_size: 1008
+  overlap_px: 256
+  det_threshold: 0.35
+  use_concept: true
+  concept_prompts: ["building"]
+  concept_threshold: 0.5
+  concept_add_threshold: 0.6
+  concept_score_weight: 0.8
+  match_iou: 0.3
+  use_refine: true
+  refine_min_iou_pred: 0.70
+  refine_consistency_iou: 0.5
+  batch_boxes: 32
+  nms_iou: 0.5
+  nms_containment: 0.8
+  min_area_m2: 4.0
+  simplify_tolerance_m: 0.15
+  regularize: true
+  rect_threshold: 0.85
+eval:
+  iou_thresholds: [0.25, 0.5, 0.75]
+  primary_iou: 0.5
+  boundary_tolerance_m: 0.5
+  pixel_gsd_m: null
+  min_area_m2: 2.0
+  score_sweep: [0.3, 0.4, 0.5, 0.6, 0.7, 0.8]

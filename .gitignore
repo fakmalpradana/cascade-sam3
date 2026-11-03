@@ -1,0 +1,12 @@
+configs/local.yaml
+work/
+*.pth
+*.pt
+*.ckpt
+*.tif
+*.ecw
+.venv/
+__pycache__/
+*.egg-info/
+.pytest_cache/
+.ruff_cache/

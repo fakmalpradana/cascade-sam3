@@ -1,0 +1,22 @@
+cascade-sam3
+Copyright 2026 Fairuz Akmal Pradana
+
+Kode di repositori ini berlisensi Apache License 2.0 (lihat LICENSE).
+
+Komponen pihak ketiga yang dipakai (tidak didistribusikan di repo ini):
+
+1. RF-DETR (Roboflow) - Apache License 2.0.
+   Hanya varian segmentasi RFDETRSeg* yang dipakai (semua ukuran Seg berlisensi Apache-2.0).
+   Varian deteksi XL/2XL berlisensi PML 1.0 dan TIDAK dipakai.
+
+2. SAM 3 (Meta, checkpoint facebook/sam3) - SAM License.
+   - Penggunaan komersial diizinkan, royalty-free.
+   - Salinan SAM License wajib disertakan saat model atau turunannya (termasuk bobot fine-tune
+     decoder hasil repo ini) dibagikan.
+   - Dilarang untuk militer/perang, nuklir, spionase, kegiatan yang tunduk ITAR, dan pihak tersanksi.
+   - Meta dapat mengubah syarat lisensi; simpan salinan lisensi yang berlaku saat bobot diunduh.
+   Bobot SAM 3 dan bobot hasil fine-tune TIDAK di-commit ke repo ini.
+
+3. Hugging Face Transformers - Apache License 2.0. PEFT - Apache License 2.0.
+
+Fork Mask2Former berlisensi CC BY-NC tidak dipakai.
