@@ -22,7 +22,8 @@ Tile ortho 1008 px
         ▼ mask NMS → resolusi overlap → poligonisasi → regularisasi → GPKG
 ```
 
-Target: mengalahkan SAM-YOLO pada **6 area uji yang sama** (3 DKI + 3 Bontang), diukur dengan skrip validasi
+Target: mengalahkan baseline **SAM 3 zero-shot** (dan cascade > detektor saja) pada **6 area uji yang sama**
+(3 DKI + 3 Bontang), diukur dengan skrip validasi
 yang sama untuk semua model.
 
 Lingkungan training: Windows, Intel i7, **RTX 3060 12 GB**, RAM 64 GB. Kode dikembangkan & dijalankan oleh Claude
@@ -350,11 +351,13 @@ Simpan `catalog.json` (raster + stretch persentil 1–99 bila bukan uint8), `lab
 tidak ada tile train/valid yang beririsan area uji (tulis tes untuk ini).
 
 ### Fase 3 — Baseline
-1. Jalankan SAM-YOLO lama pada 6 `image.tif` area uji, simpan `<area>.gpkg` (kolom `score` bila ada) di satu folder,
-   lalu `cascade-sam3 validate --pred-dir <folder> --name sam_yolo`.
-2. `predict --mode concept --zero-shot-sam3 --name sam3_zeroshot` lalu `validate --name sam3_zeroshot`.
+> **Diubah 4 Nov 2026 (keputusan user, opsi C):** bobot SAM-YOLO tidak tersedia dan hasil lamanya tidak cukup
+> sebagai baseline. Acuan utama = **SAM 3 zero-shot**; pembanding internal = RF-DETR detector-only (Fase 4).
+> Bila prediksi SAM-YOLO tersedia kelak, tambahkan saja: `validate --pred-dir <folder> --name sam_yolo`.
 
-**Lulus jika:** dua laporan baseline tersimpan; angka acuan dicatat di README.
+1. `predict --mode concept --zero-shot-sam3 --name sam3_zeroshot` lalu `validate --name sam3_zeroshot`.
+
+**Lulus jika:** laporan baseline `sam3_zeroshot` tersimpan; angka acuan dicatat di README.
 
 ### Fase 4 — Training detektor
 - `train-detector`: `RFDETRSegLarge` dengan kwargs §2.1 dari config; `run_test=True`; simpan argumen ke
@@ -362,7 +365,7 @@ tidak ada tile train/valid yang beririsan area uji (tulis tes untuk ini).
 - Jika OOM: turunkan `resolution` ke 432 atau `batch_size` 1 + `grad_accum_steps` 16; bila masih OOM, `seg-medium`.
 - Estimasi waktu ukur dari epoch pertama; laporkan ke user sebelum lanjut penuh.
 
-**Lulus jika:** `predict --mode detector` + `validate` memberi F1 objek ≥ baseline SAM-YOLO, atau bila belum,
+**Lulus jika:** `predict --mode detector` + `validate` memberi F1 objek ≥ baseline `sam3_zeroshot`, atau bila belum,
 analisis error layer dan sesuaikan (GSD, tile, epoch) sebelum lanjut.
 
 ### Fase 5 — Fine-tune SAM 3 (mask decoder)
@@ -499,5 +502,5 @@ Prediksi yang hilang untuk suatu area dihitung sebagai kosong (bukan error).
 - [ ] Ajukan akses Hugging Face ke `facebook/sam3`.
 - [ ] Pastikan QGIS terpasang di PC Windows.
 - [ ] Siapkan drive kerja dengan > 150 GB kosong (default `D:/cascade-sam3-work`).
-- [ ] Siapkan bobot/skrip SAM-YOLO lama untuk baseline Fase 3.
+- [x] ~~Siapkan bobot/skrip SAM-YOLO lama untuk baseline Fase 3.~~ Tidak tersedia; baseline = SAM 3 zero-shot (opsi C).
 - [ ] Tentukan format output akhir (GPKG default) dan CRS target bila berbeda dari CRS ortho.

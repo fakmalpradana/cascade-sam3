@@ -34,7 +34,7 @@ notepad configs\local.yaml                             # cek path data & work_di
 .\scripts\windows\01_prepare_data.ps1                  # Fase 1–2: inspect → convert-ecw → prepare
 .\scripts\windows\02_train.ps1                         # Fase 4–5: RF-DETR lalu decoder SAM 3
 .\scripts\windows\03_test_inference.ps1                # Fase 6: ablation
-.\scripts\windows\04_validate.ps1 -BaselineDir D:\sam_yolo_pred   # semua run + baseline
+.\scripts\windows\04_validate.ps1                                  # semua run (opsional -BaselineDir <folder>)
 ```
 
 Setiap skrip berhenti bila ada perintah gagal dan menyimpan transcript di `work_dir/logs/`.
@@ -57,11 +57,10 @@ Setiap skrip berhenti bila ada perintah gagal dan menyimpan transcript di `work_
 
 Contoh override: `cascade-sam3 --set infer.use_concept=false predict --mode cascade --name cascade_noconcept`.
 
-Baseline (Fase 3):
+Baseline (Fase 3) = SAM 3 zero-shot. Bobot SAM-YOLO tidak tersedia; prediksi SAM-YOLO bisa ditambah kelak
+lewat `validate --pred-dir <folder> --name sam_yolo`.
 
 ```powershell
-# SAM-YOLO lama dijalankan pada work_dir\testsets\<area>\image.tif, hasil <area>.gpkg di satu folder
-.venv\Scripts\cascade-sam3.exe validate --pred-dir D:\sam_yolo_pred --name sam_yolo
 .venv\Scripts\cascade-sam3.exe predict --mode concept --name sam3_zeroshot
 .venv\Scripts\cascade-sam3.exe validate --name sam3_zeroshot
 ```
@@ -72,8 +71,7 @@ Diisi setelah Fase 3–6 (6 area uji: 3 DKI + 3 Bontang, objek @ IoU 0,5).
 
 | Run | F1 objek | Precision | Recall | IoU piksel | Boundary F1 | AP50 |
 |---|---|---|---|---|---|---|
-| sam_yolo (baseline) | | | | | | |
-| sam3_zeroshot | | | | | | |
+| sam3_zeroshot (baseline) | | | | | | |
 | detector | | | | | | |
 | concept | | | | | | |
 | cascade_noconcept | | | | | | |
