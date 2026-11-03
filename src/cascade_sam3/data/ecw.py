@@ -10,6 +10,7 @@ import shutil
 import subprocess
 from pathlib import Path
 
+import pyproj
 from shapely.geometry import box
 
 from ..config import cities, work
@@ -55,6 +56,14 @@ def has_ecw_driver(cfg: dict) -> bool:
 
 def gdalinfo_json(cfg: dict, path) -> dict:
     return json.loads(gdal_run(cfg, "gdalinfo", ["-json", str(path)]).stdout)
+
+
+def info_crs(info: dict) -> str | None:
+    """CRS dari gdalinfo -json sebagai 'EPSG:n' bila dikenali, selain itu WKT utuh."""
+    wkt = info.get("coordinateSystem", {}).get("wkt")
+    if not wkt:
+        return None
+    return pyproj.CRS.from_wkt(wkt).to_string()
 
 
 def info_bounds(info: dict) -> tuple[float, float, float, float]:

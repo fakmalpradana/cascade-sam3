@@ -28,7 +28,7 @@ def _raster_info(cfg: dict, path) -> dict:
         try:
             info = ecw.gdalinfo_json(cfg, path)
             gt = info.get("geoTransform", [0, 0])
-            d.update(driver=info.get("driverShortName"), crs=info.get("coordinateSystem", {}).get("wkt", "")[:80],
+            d.update(driver=info.get("driverShortName"), crs=ecw.info_crs(info),
                      gsd=abs(gt[1]), width=info["size"][0], height=info["size"][1],
                      bands=len(info.get("bands", [])), nodata=(info.get("bands") or [{}])[0].get("noDataValue"),
                      bounds=list(ecw.info_bounds(info)), via="gdalinfo QGIS")
@@ -52,6 +52,11 @@ def _vector_info(path) -> list[dict]:
     return out
 
 
+def _work_crs(rasters: list[dict]) -> str | None:
+    """CRS untuk statistik label: raster pertama ber-CRS, termasuk yang hanya terbaca via gdalinfo (ECW)."""
+    return next((r["crs"] for r in rasters if r.get("crs")), None)
+
+
 def inspect(cfg: dict, city: str | None = None) -> dict:
     report = {}
     for name, ccfg in cities(cfg, city).items():
@@ -62,7 +67,7 @@ def inspect(cfg: dict, city: str | None = None) -> dict:
                 vectors += _vector_info(f)
             except Exception as e:  # noqa: BLE001
                 vectors.append(dict(file=str(f), error=str(e)[:200]))
-        crs = next((r["crs"] for r in rasters if r.get("readable") and r.get("crs")), None)
+        crs = _work_crs(rasters)
         labels = sources.load_labels(ccfg, cfg, crs=crs, min_area=0.0, do_dedup=False)
         lab = dict(count=len(labels))
         if len(labels):
