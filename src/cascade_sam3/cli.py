@@ -103,7 +103,16 @@ def run(args, cfg: dict) -> int:
     return 0
 
 
+def utf8_stdio() -> None:
+    """Paksa stdout/stderr UTF-8. Di Windows output yang dialihkan ke file memakai cp1252; tabel `rich`
+    dari rfdetr (karakter seperti '│') lalu memicu UnicodeEncodeError di akhir validasi dan training gagal."""
+    for s in (sys.stdout, sys.stderr):
+        if hasattr(s, "reconfigure"):
+            s.reconfigure(encoding="utf-8", errors="replace")
+
+
 def main(argv=None) -> int:
+    utf8_stdio()
     args = build_parser().parse_args(argv)
     cfg = load_config(args.config, args.set)
     if args.cmd not in ("show-config",):
