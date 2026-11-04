@@ -1,45 +1,104 @@
-# HANDOFF — lanjut di PC Windows
+# HANDOFF — pindah ke PC Windows ke-2 (4 Nov 2026, malam)
 
-Kode PLAN.md fase 0–7 ditulis di Mac (commit awal `00bf1b8`). Di Mac: 28 tes lulus, `ruff` bersih,
-CI hijau (ubuntu + windows, CPU, tanpa extra `train`). **Belum pernah jalan di PC ini**: belum ada
-`.venv`, GPU, ECW, data `Y:`, bobot SAM 3 asli, maupun `rfdetr`. Status user: baru `git clone`.
+PC lama (`DESKTOP-HIO7EQ9`) dipakai bersama aplikasi desktop (±3,5 GB VRAM terpakai) → training lambat.
+PC baru: spec sama (RTX 3060 12 GB, RAM 64 GB), **tanpa proses lain**, akses NAS sama.
 
-Baca dulu: `PLAN.md` (rencana + fakta teknis §2), `CLAUDE.md` (aturan repo), `README.md` (urutan skrip).
+Baca dulu: `PLAN.md` (rencana, "Lulus jika" §7), `CLAUDE.md` (aturan repo), `README.md`. Jawab dalam Bahasa
+Indonesia, ringkas, gaya terse.
 
-## Mesin
+## Status fase
 
-- Windows, RTX 3060 12 GB, RAM 64 GB, user `GeoAI_INT_4`, repo di `C:\Users\GeoAI_INT_4\cascade-sam3`.
-- Data di `Y:` (ECW + SHP/GDB), work_dir default `D:/cascade-sam3-work` (cek ruang > 150 GB).
-- Akun bukan admin dianggap default; minta user bila perlu elevasi.
-
-## Status per bagian
-
-| Bagian | Status | Yang harus dicek pertama di sini |
+| Fase | Status | Bukti / catatan |
 |---|---|---|
-| `setup_env.ps1` | belum pernah jalan | `py -3.12` ada? Execution policy? torch cu128 terpasang dan `cuda.is_available()` True? `pip install -e .[train,dev]` resolve? |
-| `check-env --smoke` | belum | login HF (`.venv\Scripts\hf.exe auth login`), akses gated `facebook/sam3`, GDAL QGIS + driver ECW |
-| `inspect` / `convert-ecw` | belum | path `Y:` di `configs/local.yaml`, auto-deteksi `gdal_translate` QGIS (`data.gdal_bin`), ruang disk |
-| `prepare` | teruji sintetis saja | label_filter & CRS nyata — tunjukkan ke user sebelum lanjut |
-| `train-detector` (RF-DETR) | **API belum pernah dieksekusi** | `rfdetr==1.11.2`: `RFDETRSegLarge`, `train(**kw)`, `from_checkpoint`, `predict` di `models/detector.py` & `train/train_detector.py`; resolusi kelipatan 24 |
-| `train-sam3` | teruji model mini CPU | VRAM 12 GB dengan bobot asli, bf16 encoder + fp32 decoder |
-| `ConceptSegmenter` (prompt teks) | API dicocokkan dengan kode transformers 5.22.1, belum dengan bobot | `get_text_features` → `text_embeds=`; tokenizer perlu unduhan |
-| skrip `.ps1` lain | belum pernah jalan | `_common.ps1` (`Invoke-Cli`, `Start-Log`), transcript ke `work_dir/logs/` |
+| 0 Lingkungan | **lulus** (PC lama) | check-env 8/8 OK, CI hijau. PC baru: perlu setup ulang (lihat bawah) |
+| 1 Inspect + convert-ecw | **lulus** | GeoTIFF di `work_dir/ortho_converted/{dki,bontang}/` (JPEG, mask, overview 2–64) |
+| 2 prepare | **lulus** | 6 area uji (3 kepadatan/kota), quicklook & overlay dicek, 0 tile train/valid beririsan area uji |
+| 3 Baseline | **lulus** | `sam3_zeroshot`: F1 objek 0,740 · IoU piksel 0,823 · boundary F1 0,729 · AP50 0,663 (README) |
+| 4 train-detector | **berjalan / dipindah** | lihat "Fase 4" di bawah |
+| 5 train-sam3 | belum | smoke dgn bobot asli OK (1,9 GB VRAM) |
 
-## Cara kerja
+Opsi baseline C (keputusan user): SAM-YOLO tidak ada → baseline = SAM 3 zero-shot.
+Kriteria Fase 4: F1 objek detector ≥ 0,740 pada area uji. Fase 5: mIoU val naik dari zero-shot, dan
+`cascade` > `detector` pada boundary F1 / IoU piksel.
 
-1. Satu masalah per langkah: jalankan, baca error, perbaiki minimal, ulang. Jangan loncat fase.
-2. Setelah perbaikan kode: `.venv\Scripts\python.exe -m pytest` dan `.venv\Scripts\ruff.exe check .`,
-   lalu commit + push ke `main` (pesan jelas). Mac akan `git pull`.
-3. Ikuti "Lulus jika" tiap fase di PLAN.md §7.
-4. Perubahan `configs/local.yaml` (label_filter, coverage_mode, target_gsd_m) tunjukkan ke user dulu.
-5. Jangan commit data, bobot, raster, `configs/local.yaml`. Jangan setel ambang pakai area uji.
-6. Jangan ketik password/token ke mana pun; user sendiri yang menjalankan `hf auth login`.
-7. Jawab dalam Bahasa Indonesia, ringkas dan teknis.
+## Data (semua di NAS, sudah jadi — JANGAN diulang)
 
-## Checklist user (PLAN.md §13)
+- `work_dir` = `//server_12/Server_12/2026/25 RND/cascade-sam3-work` (W: = `\\server_12\Server_12`)
+- Sumber: Y: = `\\Server_11\DATA_Server11` (ECW + label). Hanya perlu bila mengulang Fase 1–2.
+- `catalog/`, `testsets/` (6 area), `dataset/coco/{train,valid,test}` (train 11.431, valid 2.311, test 437
+  tile 1008 px @ 0,08 m), `dataset/coco_train6000/` (subset train 6.000, file_name relatif ke `coco/`),
+  `predictions/sam3_zeroshot/`, `reports/validation_sam3_zeroshot.md`.
+- Run detektor: `runs/detector/seg-large/`. Log konsol: `logs/train_detector_console.log`.
 
-- [ ] Akses Hugging Face `facebook/sam3` disetujui
-- [ ] QGIS LTR terpasang
-- [ ] Drive kerja > 150 GB kosong
-- [ ] Bobot/skrip SAM-YOLO lama untuk baseline Fase 3
-- [ ] Format output & CRS target
+## Fase 4 — keadaan saat pindah
+
+Setelan (configs/local.yaml): seg-large, resolusi 504, 6.000 tile train, batch 1 × grad_accum 16,
+`checkpoint_interval: 1`, 60 epoch maks + early stopping (patience 12), VRAM dibatasi 70%.
+Kecepatan PC lama: 1,25 it/s → train 80 mnt + validasi 18 mnt ≈ **1,7 jam/epoch**.
+
+Run terakhir mulai ±20:35. Epoch 0 selesai ±22:15 → `checkpoint_0.ckpt` (state lengkap untuk resume)
+**bila PC lama dihentikan setelah itu**. Cek isi `runs/detector/seg-large/` di PC baru.
+
+**Masalah yang sudah diperbaiki (jangan diulang):**
+1. VRAM penuh di Windows tidak OOM tapi meluber ke RAM (sysmem fallback) → macet. Fix: `max_vram_fraction`
+   (`utils/gpu.py`, commit 16769ff).
+2. OOM di loss mask: group DETR (13 grup) × tile padat (maks 168 bangunan) → 2,4 GB sekali alokasi. Fix:
+   `train/rfdetr_patches.py` membungkus `_sample_target_masks_at_points` per potongan 256 (hasil identik,
+   puncak 3,1 → 0,46 GB; commit 49fcb9c).
+3. Crash akhir validasi: tabel `rich` ('│') ke stdout cp1252. Fix: CLI paksa UTF-8 (commit 9e736fa).
+4. `--resume` rfdetr 1.11.2 pakai `last.ckpt` / `checkpoint_<n>.ckpt` (commit 0c20edc).
+5. Log tidak menampilkan progress → `detector.extra: {progress_bar: tqdm}`.
+
+## Langkah di PC baru
+
+1. **Pastikan training di PC lama sudah berhenti** (satu folder run di NAS; dua proses = rusak).
+2. `git clone https://github.com/fakmalpradana/cascade-sam3` (atau `git pull` bila sudah ada).
+3. Python 3.12 (`py install 3.12` bila belum), lalu `scripts\windows\setup_env.ps1`. Perbaiki minimal bila gagal.
+4. User sendiri: `.venv\Scripts\hf.exe auth login` (**jangan ketik token**). Perlu untuk SAM 3 (Fase 5).
+5. Buat `configs/local.yaml` (isi di bawah). Cek `W:`/`Y:` terlihat; bila Claude Code jalan sebagai Admin,
+   drive mapping tak terlihat → pakai path UNC (sudah dipakai di bawah).
+6. `scripts\windows\00_check_env.ps1` (`check-env --smoke`). GDAL/ECW (QGIS) hanya perlu bila mengulang
+   convert-ecw; boleh dilewati bila hanya item GDAL yang gagal.
+7. Lanjut Fase 4:
+   - Bila ada `checkpoint_<n>.ckpt` → `cascade-sam3 train-detector --resume` (setelan batch/accum **sama**).
+   - Bila tidak ada → hapus `events.out.tfevents.*` & `metrics.csv` di folder run, lalu `train-detector`.
+   - Jalankan dengan log ke file, mis. (Git Bash):
+     `PYTHONUNBUFFERED=1 .venv/Scripts/cascade-sam3.exe train-detector > "<work_dir>/logs/train_detector_console.log" 2>&1`
+   - Cek 5 menit pertama: it/s, `max_mem`, dan "Shared Usage" GPU (Get-Counter
+     `'\GPU Process Memory(*)\Shared Usage'`) harus kecil (< 1 GB). Bila meluber → turunkan `max_vram_fraction`.
+8. Tiap checkpoint/epoch: `predict --mode detector --name detector` + `validate --name detector`; bandingkan
+   dengan `reports/validation_sam3_zeroshot.md`. Laporkan ke user tiap epoch; user ingin hasil cepat —
+   bila F1 ≥ 0,740 dan stabil, tawarkan stop lebih awal.
+9. Fase 5: `train-sam3`, lalu `predict --mode cascade` + `validate`, catat di README.
+
+### configs/local.yaml untuk PC baru (gitignored)
+
+Sama dengan `configs/local.example.yaml` (path UNC), ditambah:
+
+```yaml
+detector:
+  batch_size: 1              # samakan dgn run PC lama agar --resume konsisten
+  grad_accum_steps: 16
+  max_train_images: 6000     # permintaan user: subset 6.000 tile (valid/test utuh)
+  checkpoint_interval: 1
+  extra: {progress_bar: tqdm}
+  max_vram_fraction: 0.9     # PC baru tanpa aplikasi lain; tetap dibatasi agar tidak meluber ke RAM
+sam3:
+  max_vram_fraction: 0.9
+```
+
+## Cara kerja (aturan user)
+
+- Satu masalah per langkah. Jangan lanjut fase sebelum "Lulus jika" terpenuhi.
+- Tiap perbaikan kode: `pytest` + `ruff check src tests`, commit (trailer Co-Authored-By/Claude-Session) + push `main`.
+- Perubahan local.yaml untuk label_filter / coverage_mode / target_gsd_m tunjukkan ke user dulu.
+- Jangan commit data, bobot, raster, `configs/local.yaml`. Jangan setel ambang pakai area uji (pakai valid).
+- Jangan ketik password/token.
+
+## Jebakan teknis di PC ini
+
+- Git Bash heredoc/`sed` memakan backslash (`\t` jadi tab) → tulis skrip Python lewat tool Write.
+- PowerShell 5.1: here-string + `git commit -m` rusak → `git commit -F -` dari bash heredoc.
+- `gh` tidak terpasang; cek CI via `curl https://api.github.com/repos/fakmalpradana/cascade-sam3/actions/runs?per_page=1`.
+- Push kadang gagal 500 dari GitHub → ulangi.
+- `log` file di NAS: mtime tidak andal; baca isinya (`tail -c ... | tr '\r' '\n'`).
