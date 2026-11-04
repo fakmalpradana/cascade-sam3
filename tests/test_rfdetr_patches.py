@@ -1,6 +1,9 @@
+import pytest
 import torch
 
 from cascade_sam3.train import rfdetr_patches
+
+pytest.importorskip("rfdetr")  # CI tanpa extra `train`
 
 
 def test_chunked_sampler_matches_original():
