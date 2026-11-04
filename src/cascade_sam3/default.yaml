@@ -38,8 +38,10 @@ detector:
   early_stopping_patience: 12
   checkpoint_interval: 5
   extra: {}
+  max_vram_fraction: null     # mis. 0.7 bila GPU dipakai bersama desktop; Windows meluberkan VRAM ke RAM (sangat lambat)
 sam3:
   model_id: facebook/sam3
+  max_vram_fraction: null
   train_mode: decoder         # decoder | lora
   lora_r: 16
   lora_alpha: 32

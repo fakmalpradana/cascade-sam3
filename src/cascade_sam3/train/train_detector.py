@@ -9,6 +9,7 @@ from pathlib import Path
 
 from ..config import work
 from ..models.detector import detector_class
+from ..utils.gpu import limit_vram
 
 log = logging.getLogger(__name__)
 
@@ -47,6 +48,7 @@ def train_detector(cfg: dict, name: str | None = None, resume: bool = False, epo
     (out / "cascade_train_args.json").write_text(json.dumps(dict(variant=dc["variant"], **kwargs), indent=2),
                                                   encoding="utf-8")
     log.info("RF-DETR %s -> %s", dc["variant"], out)
+    limit_vram(dc.get("max_vram_fraction"))
     model = detector_class(dc["variant"])()
     model.train(**kwargs)
     return out

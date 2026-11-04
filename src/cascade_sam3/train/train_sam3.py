@@ -17,6 +17,7 @@ from torch.utils.data import DataLoader, Dataset
 
 from ..config import work
 from ..models.sam3 import apply_lora, default_device, torch_dtype
+from ..utils.gpu import limit_vram
 
 log = logging.getLogger(__name__)
 
@@ -140,6 +141,8 @@ def train_sam3(cfg: dict, name: str | None = None, resume: bool = False, epochs:
     enc_dtype = torch_dtype(sc["amp_dtype"])
     out = work(cfg, "runs", "sam3", *([name] if name else []))
     out.mkdir(parents=True, exist_ok=True)
+    if device.startswith("cuda"):
+        limit_vram(sc.get("max_vram_fraction"))
     if model is None:
         from transformers import Sam3TrackerModel, Sam3TrackerProcessor
 
