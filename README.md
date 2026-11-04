@@ -73,10 +73,15 @@ Baseline per kota: F1 objek DKI 0,696, Bontang 0,781 (`reports/validation_sam3_z
 | Run | F1 objek | Precision | Recall | IoU piksel | Boundary F1 | AP50 |
 |---|---|---|---|---|---|---|
 | sam3_zeroshot (baseline) | 0,740 | 0,723 | 0,758 | 0,823 | 0,729 | 0,663 |
-| detector | | | | | | |
+| detector | 0,802 | 0,776 | 0,829 | 0,875 | 0,789 | 0,766 |
 | concept | | | | | | |
 | cascade_noconcept | | | | | | |
-| cascade | | | | | | |
+| cascade | 0,800 | 0,772 | 0,830 | 0,879 | 0,788 | 0,776 |
+
+Catatan run (5 Nov 2026): `detector` = bobot `checkpoint_best_ema` epoch 2, training dihentikan lebih awal atas keputusan
+user; `cascade` = decoder SAM 3 2 epoch pada 4.000 tile (mIoU val 0,846 → 0,881). Ambang masih bawaan, belum disetel
+pada split `valid`. Selama/sesudah training yang dihentikan tidak ada `checkpoint_best_total.pth`, jadi `predict` perlu
+`--detector <work_dir>/runs/detector/checkpoint_best_ema_ep2_stop.pth`.
 
 ## Pengembangan
 
