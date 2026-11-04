@@ -25,7 +25,7 @@ GRID = {
     "concept_add_threshold": [0.6, 0.7, 0.8, 0.9, 1.01],  # 1.01 = tak pernah menambah konsep
     "refine_smooth_px": [0, 5, 9, 13, 17],
     "refine_consistency_iou": [0.3, 0.5, 0.7, 0.85],
-    "refine_min_iou_pred": [0.6, 0.7, 0.8, 0.9, 1.01],  # terakhir: 1.01 = refine mati, parameter refine lain tak berefek
+    "refine_min_iou_pred": [0.6, 0.7, 0.8, 0.9, 1.01],  # terakhir: 1.01 = refine mati, parameter refine lain tak efek
 }
 DETECTOR_KEYS = ("det_threshold",)
 
