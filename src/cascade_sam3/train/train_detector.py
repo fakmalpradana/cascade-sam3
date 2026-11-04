@@ -49,6 +49,9 @@ def train_detector(cfg: dict, name: str | None = None, resume: bool = False, epo
                                                   encoding="utf-8")
     log.info("RF-DETR %s -> %s", dc["variant"], out)
     limit_vram(dc.get("max_vram_fraction"))
+    from . import rfdetr_patches
+
+    rfdetr_patches.apply()
     model = detector_class(dc["variant"])()
     model.train(**kwargs)
     return out
