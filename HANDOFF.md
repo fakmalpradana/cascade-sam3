@@ -15,7 +15,7 @@ Indonesia, ringkas, gaya terse.
 | 2 prepare | **lulus** | 6 area uji (3 kepadatan/kota), quicklook & overlay dicek, 0 tile train/valid beririsan area uji |
 | 3 Baseline | **lulus** | `sam3_zeroshot`: F1 objek 0,740 · IoU piksel 0,823 · boundary F1 0,729 · AP50 0,663 (README) |
 | 4 train-detector | **lulus** (PC baru, 5 Nov) | stop di epoch 2 (keputusan user): F1 objek 0,802 ≥ 0,740. Bobot: `runs/detector/checkpoint_best_ema_ep2_stop.pth` |
-| 5 train-sam3 | **selesai, tipis** (5 Nov) | 4.000 tile × 2 epoch: mIoU val 0,846 → 0,881. `cascade` vs `detector`: IoU piksel 0,879 > 0,875, tetapi boundary F1 0,7880 < 0,7886 (DKI turun 0,776 → 0,762), F1 objek 0,800 < 0,802 |
+| 5 train-sam3 | **belum lulus** (keputusan user 5 Nov; target baru IoU > 0,90) | 4.000 tile × 2 epoch: mIoU val 0,846 → 0,881. `cascade` vs `detector`: IoU piksel 0,879 > 0,875, tetapi boundary F1 0,7880 < 0,7886 (DKI turun 0,776 → 0,762), F1 objek 0,800 < 0,802 |
 
 Opsi baseline C (keputusan user): SAM-YOLO tidak ada → baseline = SAM 3 zero-shot.
 Kriteria Fase 4: F1 objek detector ≥ 0,740 pada area uji. Fase 5: mIoU val naik dari zero-shot, dan
