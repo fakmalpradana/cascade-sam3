@@ -41,6 +41,12 @@ def build_parser() -> argparse.ArgumentParser:
     s.add_argument("--areas", nargs="+")
     s.add_argument("--raster")
     s.add_argument("--out")
+    s = sub.add_parser("tune-infer", help="setel ambang inferensi pada split valid")
+    s.add_argument("--mode", choices=["cascade", "detector"], default="cascade")
+    s.add_argument("--detector")
+    s.add_argument("--sam3")
+    s.add_argument("--n-tiles", type=int, default=300)
+    s.add_argument("--name")
     s = sub.add_parser("validate")
     s.add_argument("--name")
     s.add_argument("--pred-dir")
@@ -93,6 +99,10 @@ def run(args, cfg: dict) -> int:
         from .infer.predict import predict_cli
 
         predict_cli(cfg, args)
+    elif c == "tune-infer":
+        from .eval.tune import tune_infer
+
+        print(tune_infer(cfg, args.mode, args.detector, args.sam3, args.n_tiles, args.name))
     elif c == "validate":
         from pathlib import Path
 

@@ -73,6 +73,7 @@ infer:
   use_refine: true
   refine_min_iou_pred: 0.70
   refine_consistency_iou: 0.5
+  refine_smooth_px: 0         # opening+closing mask hasil refine; 0 = mati
   batch_boxes: 32
   nms_iou: 0.5
   nms_containment: 0.8

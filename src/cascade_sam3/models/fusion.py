@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import cv2
 import numpy as np
 
 from .instances import Instances
@@ -59,6 +60,21 @@ def refine(inst: Instances, rgb: np.ndarray, refiner, ic: dict) -> Instances:
         return inst
     h, w = rgb.shape[:2]
     new, iou_pred = refiner(rgb, pad_boxes(inst.boxes(), h, w))
+    return apply_refinement(inst, smooth_masks(new, ic.get("refine_smooth_px", 0)), iou_pred, ic)
+
+
+def smooth_masks(masks: np.ndarray, px: int) -> np.ndarray:
+    """Opening lalu closing elips `px` piksel per mask: menghilangkan gerigi tepi hasil upsampling SAM 3."""
+    if px < 3 or not len(masks):
+        return masks
+    kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (px, px))
+    out = [cv2.morphologyEx(cv2.morphologyEx(m.astype(np.uint8), cv2.MORPH_OPEN, kernel), cv2.MORPH_CLOSE, kernel)
+           for m in masks]
+    return np.stack(out).astype(bool)
+
+
+def apply_refinement(inst: Instances, new: np.ndarray, iou_pred, ic: dict) -> Instances:
+    """Ganti mask bila iou_pred dan konsistensi dengan mask lama cukup."""
     inter = np.logical_and(new, inst.masks).sum((1, 2))
     union = np.logical_or(new, inst.masks).sum((1, 2))
     cons = inter / np.maximum(union, 1)
