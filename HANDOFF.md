@@ -73,9 +73,30 @@ Run terakhir mulai ±20:35. Epoch 0 selesai ±22:15 → `checkpoint_0.ckpt` (sta
 
 ### configs/local.yaml untuk PC baru (gitignored)
 
-Sama dengan `configs/local.example.yaml` (path UNC), ditambah:
+Salin persis (path UNC; `local.example.yaml` masih memakai `Y:`/`D:`):
 
 ```yaml
+work_dir: "//server_12/Server_12/2026/25 RND/cascade-sam3-work"
+data:
+  gdal_bin: null
+  target_gsd_m: 0.08          # disetujui user 2026-11-04
+cities:
+  dki:
+    ortho: "//Server_11/DATA_Server11/01 DKI JAKARTA 2025/02 DIGITASI/00 DATA DASAR/01 ORTHOFOTO"
+    labels: "//Server_11/DATA_Server11/01 DKI JAKARTA 2025/02 DIGITASI/03 DATA FIX/03 FINAL"
+    label_name_regex: '[-_]BO(_TAMBAL|_\d+)?\.gpkg$'   # hanya BO (disetujui user)
+    coverage_mode: file_bbox
+    coverage_buffer_m: 30
+    coverage_polygon: null
+    label_filter: null
+  bontang:
+    ortho: "//Server_11/DATA_Server11/2025/05 BONTANG/0_ORTO TAHAP 1 BONTANG"
+    labels: "//Server_11/DATA_Server11/2025/05 BONTANG/24_DELIVERABLE PRODUCT/00 Kegiatan Pemodelan 3D Bangunan dan Infrastruktur serta Validasi Data PBB/02 PEMBUATAN MODEL 3D (3D CITY MODEL)/01 TAPAK BANGUNAN/01 FORMAT SHAPEFILE"
+    label_name_regex: null
+    coverage_mode: buffer
+    coverage_buffer_m: 30
+    coverage_polygon: null
+    label_filter: null        # semua TOPONIMI = "Bangunan"
 detector:
   batch_size: 1              # samakan dgn run PC lama agar --resume konsisten
   grad_accum_steps: 16
