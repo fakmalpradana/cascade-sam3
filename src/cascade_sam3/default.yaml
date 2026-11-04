@@ -38,6 +38,7 @@ detector:
   early_stopping_patience: 12
   checkpoint_interval: 5
   extra: {}
+  max_train_images: null      # mis. 6000: subset acak train (proporsional per kota); valid/test utuh
   max_vram_fraction: null     # mis. 0.7 bila GPU dipakai bersama desktop; Windows meluberkan VRAM ke RAM (sangat lambat)
 sam3:
   model_id: facebook/sam3

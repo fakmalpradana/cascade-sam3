@@ -33,6 +33,10 @@ def train_detector(cfg: dict, name: str | None = None, resume: bool = False, epo
     dataset_dir = work(cfg, "dataset", "coco")
     if not (dataset_dir / "train" / "_annotations.coco.json").exists():
         raise FileNotFoundError(f"{dataset_dir} belum ada; jalankan build-dataset")
+    if dc.get("max_train_images"):
+        from ..data.subset import make_train_subset
+
+        dataset_dir = make_train_subset(dataset_dir, int(dc["max_train_images"]), cfg["data"]["seed"])
     out = work(cfg, "runs", "detector", name or dc["variant"])
     out.mkdir(parents=True, exist_ok=True)
     kwargs = dict(
