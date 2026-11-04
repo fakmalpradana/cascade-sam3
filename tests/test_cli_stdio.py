@@ -1,9 +1,12 @@
 import subprocess
 import sys
 
+import pytest
+
 
 def test_utf8_stdio_lets_redirected_output_print_box_chars(tmp_path):
     # Windows: output dialihkan -> cp1252; tabel rich rfdetr ('│') dulu membuat training crash
+    pytest.importorskip("rich")  # CI tanpa extra `train`
     code = ("from cascade_sam3.cli import utf8_stdio; utf8_stdio(); "
             "from rich.console import Console; Console().print('Val \u2502 Overall'); print('OK')")
     out = tmp_path / "o.txt"
