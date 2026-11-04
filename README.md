@@ -68,10 +68,11 @@ lewat `validate --pred-dir <folder> --name sam_yolo`.
 ## Hasil
 
 Diisi setelah Fase 3–6 (6 area uji: 3 DKI + 3 Bontang, objek @ IoU 0,5).
+Baseline per kota: F1 objek DKI 0,696, Bontang 0,781 (`reports/validation_sam3_zeroshot.md`, 4 Nov 2026).
 
 | Run | F1 objek | Precision | Recall | IoU piksel | Boundary F1 | AP50 |
 |---|---|---|---|---|---|---|
-| sam3_zeroshot (baseline) | | | | | | |
+| sam3_zeroshot (baseline) | 0,740 | 0,723 | 0,758 | 0,823 | 0,729 | 0,663 |
 | detector | | | | | | |
 | concept | | | | | | |
 | cascade_noconcept | | | | | | |
