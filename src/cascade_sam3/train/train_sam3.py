@@ -134,6 +134,13 @@ def _collate(batch):
     return batch[0]
 
 
+def save_atomic(obj, path: Path) -> None:
+    """Tulis ke file sementara lalu ganti nama: crash saat menyimpan tidak merusak checkpoint yang sudah ada."""
+    tmp = path.with_name(path.name + ".tmp")
+    torch.save(obj, tmp)
+    tmp.replace(path)
+
+
 def train_sam3(cfg: dict, name: str | None = None, resume: bool = False, epochs: int | None = None,
                model=None, processor=None, device: str | None = None) -> Path:
     sc = cfg["sam3"]
@@ -246,9 +253,10 @@ def train_sam3(cfg: dict, name: str | None = None, resume: bool = False, epochs:
             ck = dict(mode=sc["train_mode"], lora_r=sc["lora_r"], lora_alpha=sc["lora_alpha"],
                       state_dict=model.mask_decoder.state_dict(), optimizer=opt.state_dict(),
                       scheduler=sched.state_dict(), epoch=ep, val_iou=v, best=best, model_id=sc["model_id"])
-            torch.save(ck, last_path)
+            save_atomic(ck, out / f"sam3_decoder_ep{ep + 1}.pt")
+            save_atomic(ck, last_path)
             if v >= best:
-                torch.save(ck, best_path)
+                save_atomic(ck, best_path)
     finally:
         logf.close()
         if writer:

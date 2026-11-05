@@ -44,6 +44,8 @@ def test_sam3_train_tiny(tmp_path, mode):
     proc = Sam3TrackerProcessor(image_processor=Sam3ImageProcessor())
     best = train_sam3(cfg, epochs=1, model=model, processor=proc, device="cpu")
     assert best.exists() and (tmp_path / "runs" / "sam3" / "sam3_decoder_last.pt").exists()
+    assert (tmp_path / "runs" / "sam3" / "sam3_decoder_ep1.pt").exists()
+    assert not list((tmp_path / "runs" / "sam3").glob("*.tmp"))
     assert (tmp_path / "runs" / "sam3" / "train_log.csv").read_text().count("\n") == 3  # header + zero-shot + 1
 
     fresh = Sam3TrackerModel(tiny_tracker_config())
