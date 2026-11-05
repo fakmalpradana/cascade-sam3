@@ -28,6 +28,7 @@ testsets:
 detector:
   variant: seg-large
   resolution: 504
+  init_weights: null          # bobot awal .pth (mis. run resolusi lain); null = bobot pralatih COCO
   epochs: 60
   batch_size: 2
   grad_accum_steps: 8

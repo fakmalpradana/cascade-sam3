@@ -56,6 +56,8 @@ def train_detector(cfg: dict, name: str | None = None, resume: bool = False, epo
     from . import rfdetr_patches
 
     rfdetr_patches.apply()
-    model = detector_class(dc["variant"])()
+    init = dc.get("init_weights")
+    cls = detector_class(dc["variant"])
+    model = cls(pretrain_weights=str(Path(init)), resolution=dc["resolution"]) if init else cls()
     model.train(**kwargs)
     return out
