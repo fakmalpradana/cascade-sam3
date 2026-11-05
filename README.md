@@ -73,15 +73,25 @@ Baseline per kota: F1 objek DKI 0,696, Bontang 0,781 (`reports/validation_sam3_z
 | Run | F1 objek | Precision | Recall | IoU piksel | Boundary F1 | AP50 |
 |---|---|---|---|---|---|---|
 | sam3_zeroshot (baseline) | 0,740 | 0,723 | 0,758 | 0,823 | 0,729 | 0,663 |
-| detector | 0,802 | 0,776 | 0,829 | 0,875 | 0,789 | 0,766 |
+| detector (epoch 2) | 0,802 | 0,776 | 0,829 | 0,875 | 0,789 | 0,766 |
+| cascade (detektor epoch 2, decoder 2 epoch) | 0,800 | 0,772 | 0,830 | 0,879 | 0,788 | 0,776 |
+| tahap1_detector_default (epoch 12) | 0,811 | 0,796 | 0,827 | 0,885 | 0,800 | 0,770 |
+| tahap1_detector_tuned | 0,794 | 0,756 | 0,837 | 0,885 | 0,799 | 0,776 |
+| tahap1_cascade_default (decoder 6 epoch) | 0,808 | 0,789 | 0,828 | 0,886 | 0,793 | 0,774 |
+| tahap1_cascade_tuned | 0,782 | 0,731 | 0,841 | 0,882 | 0,795 | 0,787 |
 | concept | | | | | | |
 | cascade_noconcept | | | | | | |
-| cascade | 0,800 | 0,772 | 0,830 | 0,879 | 0,788 | 0,776 |
 
 Catatan run (5 Nov 2026): `detector` = bobot `checkpoint_best_ema` epoch 2, training dihentikan lebih awal atas keputusan
 user; `cascade` = decoder SAM 3 2 epoch pada 4.000 tile (mIoU val 0,846 → 0,881). Ambang masih bawaan, belum disetel
 pada split `valid`. Selama/sesudah training yang dihentikan tidak ada `checkpoint_best_total.pth`, jadi `predict` perlu
 `--detector <work_dir>/runs/detector/checkpoint_best_ema_ep2_stop.pth`.
+
+Tahap 1 (5 Nov 2026): detektor 12 epoch (F1 val 0,786), decoder 6 epoch pada 4.000 tile (mIoU val 0,885). Target IoU
+piksel > 0,90 **belum tercapai**. `tuned` memakai ambang dari `tune-infer` pada 300 tile `valid`
+(`reports/tune_tahap1_*.json`): detektor `det_threshold=0.25`; cascade `det_threshold=0.2, concept_add_threshold=0.9,
+refine_min_iou_pred=1.01` (refine mati). IoU `valid` setelah tuning ±0,90, tetapi tidak terbawa ke area uji: F1 objek
+turun dan IoU naik paling banyak 0,0003. Ambang di `default.yaml` tidak diubah.
 
 ## Pengembangan
 
