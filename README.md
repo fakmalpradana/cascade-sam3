@@ -79,6 +79,9 @@ Baseline per kota: F1 objek DKI 0,696, Bontang 0,781 (`reports/validation_sam3_z
 | tahap1_detector_tuned | 0,794 | 0,756 | 0,837 | 0,885 | 0,799 | 0,776 |
 | tahap1_cascade_default (decoder 6 epoch) | 0,808 | 0,789 | 0,828 | 0,886 | 0,793 | 0,774 |
 | tahap1_cascade_tuned | 0,782 | 0,731 | 0,841 | 0,882 | 0,795 | 0,787 |
+| tahap2_detector_default (resolusi 672) | 0,815 | 0,792 | 0,838 | 0,889 | 0,814 | 0,780 |
+| tahap2_detector_tuned | 0,798 | 0,756 | 0,845 | 0,890 | 0,812 | 0,788 |
+| tahap2_cascade_default | 0,813 | 0,789 | 0,839 | 0,888 | 0,795 | 0,784 |
 | concept | | | | | | |
 | cascade_noconcept | | | | | | |
 
@@ -92,6 +95,12 @@ piksel > 0,90 **belum tercapai**. `tuned` memakai ambang dari `tune-infer` pada 
 (`reports/tune_tahap1_*.json`): detektor `det_threshold=0.25`; cascade `det_threshold=0.2, concept_add_threshold=0.9,
 refine_min_iou_pred=1.01` (refine mati). IoU `valid` setelah tuning ±0,90, tetapi tidak terbawa ke area uji: F1 objek
 turun dan IoU naik paling banyak 0,0003. Ambang di `default.yaml` tidak diubah.
+
+Tahap 2 (6 Nov 2026): detektor resolusi 672, warm start dari bobot epoch 12 (`detector.init_weights`), 8 epoch, 6.000
+tile (`runs/detector/seg-large-672`). Target IoU piksel > 0,90 **belum tercapai**: ambang dari `valid`
+(`det_threshold=0.25`, IoU `valid` 0,908) menghasilkan IoU area uji 0,8902. `cascade` tidak lebih baik dari `detector`
+pada IoU (0,888 vs 0,889) maupun boundary F1 (0,795 vs 0,814). Bobot terbaru ini kini menjadi default `predict` karena
+`latest_detector_ckpt` memilih berkas terbaru; pakai `--detector` untuk memilih bobot lain.
 
 ## Pengembangan
 
