@@ -82,6 +82,9 @@ Baseline per kota: F1 objek DKI 0,696, Bontang 0,781 (`reports/validation_sam3_z
 | tahap2_detector_default (resolusi 672) | 0,815 | 0,792 | 0,838 | 0,889 | 0,814 | 0,780 |
 | tahap2_detector_tuned | 0,798 | 0,756 | 0,845 | 0,890 | 0,812 | 0,788 |
 | tahap2_cascade_default | 0,813 | 0,789 | 0,839 | 0,888 | 0,795 | 0,784 |
+| tahap2b_detector_default (672, semua tile) | 0,821 | 0,803 | 0,840 | 0,893 | 0,818 | 0,785 |
+| tahap2b_detector_tuned | 0,804 | 0,765 | 0,846 | 0,893 | 0,817 | 0,791 |
+| tahap2b_cascade_default | 0,817 | 0,796 | 0,840 | 0,889 | 0,798 | 0,786 |
 | concept | | | | | | |
 | cascade_noconcept | | | | | | |
 
@@ -101,6 +104,13 @@ tile (`runs/detector/seg-large-672`). Target IoU piksel > 0,90 **belum tercapai*
 (`det_threshold=0.25`, IoU `valid` 0,908) menghasilkan IoU area uji 0,8902. `cascade` tidak lebih baik dari `detector`
 pada IoU (0,888 vs 0,889) maupun boundary F1 (0,795 vs 0,814). Bobot terbaru ini kini menjadi default `predict` karena
 `latest_detector_ckpt` memilih berkas terbaru; pakai `--detector` untuk memilih bobot lain.
+
+Tahap 2b (7 Nov 2026): detektor resolusi 672, warm start dari bobot Tahap 2, 8 epoch, semua 11.431 tile
+(`runs/detector/seg-large-672-all`, ±12,7 jam). Target IoU piksel > 0,90 **belum tercapai**: ambang dari `valid`
+(`det_threshold=0.25`, IoU `valid` 0,913) menghasilkan IoU area uji 0,8929, naik 0,0027 dari Tahap 2. F1 val hampir
+datar sepanjang training (0,794 → 0,798). Area uji terlemah `dki_01` (IoU 0,857, precision objek 0,61) dan
+`bontang_01` (IoU 0,871). `cascade` tetap tidak lebih baik dari `detector` pada IoU (0,889 vs 0,893) maupun boundary F1
+(0,798 vs 0,818). Bobot ini kini menjadi default `predict`.
 
 ## Pengembangan
 
