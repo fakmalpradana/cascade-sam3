@@ -85,8 +85,7 @@ Baseline per kota: F1 objek DKI 0,696, Bontang 0,781 (`reports/validation_sam3_z
 | tahap2b_detector_default (672, semua tile) | 0,821 | 0,803 | 0,840 | 0,893 | 0,818 | 0,785 |
 | tahap2b_detector_tuned | 0,804 | 0,765 | 0,846 | 0,893 | 0,817 | 0,791 |
 | tahap2b_cascade_default | 0,817 | 0,796 | 0,840 | 0,889 | 0,798 | 0,786 |
-| concept | | | | | | |
-| cascade_noconcept | | | | | | |
+| **final_detector** (= tahap2b_detector_tuned) | 0,804 | 0,765 | 0,846 | 0,893 | 0,817 | 0,791 |
 
 Catatan run (5 Nov 2026): `detector` = bobot `checkpoint_best_ema` epoch 2, training dihentikan lebih awal atas keputusan
 user; `cascade` = decoder SAM 3 2 epoch pada 4.000 tile (mIoU val 0,846 → 0,881). Ambang masih bawaan, belum disetel
@@ -111,6 +110,17 @@ Tahap 2b (7 Nov 2026): detektor resolusi 672, warm start dari bobot Tahap 2, 8 e
 datar sepanjang training (0,794 → 0,798). Area uji terlemah `dki_01` (IoU 0,857, precision objek 0,61) dan
 `bontang_01` (IoU 0,871). `cascade` tetap tidak lebih baik dari `detector` pada IoU (0,889 vs 0,893) maupun boundary F1
 (0,798 vs 0,818). Bobot ini kini menjadi default `predict`.
+
+**Model final (7 Nov 2026, keputusan user: berhenti di IoU 0,893):** mode `detector`, bobot
+`runs/detector/seg-large-672-all/checkpoint_best_total.pth`, `det_threshold=0.25` dari split `valid`. Target 0,90 tidak
+tercapai dan `cascade` tidak dipakai karena tidak lebih baik dari `detector`. Ablation `concept`/`cascade_noconcept` tidak
+dijalankan. Prediksi ulang menghasilkan metrik yang sama. Paket QGIS (TIFF + GeoJSON WGS84) ada di
+`work_dir/reports/qgis_final`.
+
+```powershell
+.venv\Scripts\cascade-sam3.exe --set infer.det_threshold=0.25 predict --mode detector --detector <bobot> --name final_detector
+.venv\Scripts\cascade-sam3.exe validate --name final_detector
+```
 
 ## Pengembangan
 
