@@ -41,6 +41,10 @@ def build_parser() -> argparse.ArgumentParser:
     s.add_argument("--areas", nargs="+")
     s.add_argument("--raster")
     s.add_argument("--out")
+    s = sub.add_parser("regularize", help="post-process sudut siku pada prediksi yang sudah ada")
+    s.add_argument("--src", required=True, help="nama run sumber di predictions/")
+    s.add_argument("--name", required=True, help="nama run hasil")
+    s.add_argument("--steps", nargs="+", choices=["v2", "v3"], help="default infer.rightangle_chain")
     s = sub.add_parser("tune-infer", help="setel ambang inferensi pada split valid")
     s.add_argument("--mode", choices=["cascade", "detector"], default="cascade")
     s.add_argument("--detector")
@@ -99,6 +103,10 @@ def run(args, cfg: dict) -> int:
         from .infer.predict import predict_cli
 
         predict_cli(cfg, args)
+    elif c == "regularize":
+        from .infer.predict import regularize_predictions
+
+        log.info("hasil di %s", regularize_predictions(cfg, args.src, args.name, args.steps))
     elif c == "tune-infer":
         from .eval.tune import tune_infer
 

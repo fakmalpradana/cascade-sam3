@@ -82,6 +82,7 @@ infer:
   simplify_tolerance_m: 0.15
   regularize: true
   rect_threshold: 0.85
+  rightangle_chain: [v2, v3, v3]   # post-process sudut siku (post/rightangle.py); [] = mati
 eval:
   iou_thresholds: [0.25, 0.5, 0.75]
   primary_iou: 0.5

@@ -53,6 +53,7 @@ Setiap skrip berhenti bila ada perintah gagal dan menyimpan transcript di `work_
 | `train-sam3 [--name] [--resume] [--epochs]` | fine-tune mask decoder SAM 3 (`sam3.train_mode: lora` opsional) |
 | `predict [--mode cascade\|detector\|concept] [--zero-shot-sam3] [--name] [--areas ...]` | inferensi area uji |
 | `predict --raster F --out F.gpkg` | inferensi raster bebas (untuk NARAGA) |
+| `regularize --src <run> --name <run_baru> [--steps v2 v3 ...]` | post-process sudut siku pada prediksi yang sudah ada |
 | `validate [--name] [--pred-dir] [--areas ...]` | metrik piksel, objek, AP, boundary F1 |
 
 Contoh override: `cascade-sam3 --set infer.use_concept=false predict --mode cascade --name cascade_noconcept`.
@@ -86,6 +87,8 @@ Baseline per kota: F1 objek DKI 0,696, Bontang 0,781 (`reports/validation_sam3_z
 | tahap2b_detector_tuned | 0,804 | 0,765 | 0,846 | 0,893 | 0,817 | 0,791 |
 | tahap2b_cascade_default | 0,817 | 0,796 | 0,840 | 0,889 | 0,798 | 0,786 |
 | **final_detector** (= tahap2b_detector_tuned) | 0,804 | 0,765 | 0,846 | 0,893 | 0,817 | 0,791 |
+| final_cascade_reg (tahap2b_cascade_default + v2 > v3 > v3) | 0,814 | 0,791 | 0,839 | 0,883 | 0,792 | 0,780 |
+| samyolo (GeoJSON SAM + YOLO, evaluator sama) | 0,567 | 0,584 | 0,551 | 0,720 | 0,645 | 0,382 |
 
 Catatan run (5 Nov 2026): `detector` = bobot `checkpoint_best_ema` epoch 2, training dihentikan lebih awal atas keputusan
 user; `cascade` = decoder SAM 3 2 epoch pada 4.000 tile (mIoU val 0,846 → 0,881). Ambang masih bawaan, belum disetel
@@ -121,6 +124,20 @@ dijalankan. Prediksi ulang menghasilkan metrik yang sama. Paket QGIS (TIFF + Geo
 .venv\Scripts\cascade-sam3.exe --set infer.det_threshold=0.25 predict --mode detector --detector <bobot> --name final_detector
 .venv\Scripts\cascade-sam3.exe validate --name final_detector
 ```
+
+Regularisasi sudut siku (7 Nov 2026): `post/rightangle.py` memuat algoritma v2 dan v3 dari user (port identik,
+dicek pada 1.200 poligon nyata). Rantai default `infer.rightangle_chain: [v2, v3, v3]` dijalankan di akhir `predict`
+setelah penggabungan antar tile; `[]` mematikannya. Prediksi lama di-post-process tanpa inferensi ulang:
+
+```powershell
+.venv\Scripts\cascade-sam3.exe regularize --src tahap2b_cascade_default --name final_cascade_reg
+.venv\Scripts\cascade-sam3.exe validate --name final_cascade_reg
+```
+
+Terhadap label area uji, regularisasi sedikit menurunkan metrik: F1 0,817 → 0,814, IoU piksel 0,889 → 0,883, boundary
+F1 0,798 → 0,792. Run sebelum 7 Nov dibuat tanpa langkah ini; untuk mengulangnya pakai
+`--set "infer.rightangle_chain=[]"`. Report perbandingan dengan SAM + YOLO:
+`work_dir/reports/Perbandingan_SAM-YOLO_vs_RF-DETR-SAM3.pdf`.
 
 ## Pengembangan
 
